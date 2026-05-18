@@ -169,7 +169,7 @@ export default function DebtDetector({ currentUser, userData, onUpdateAnalyses, 
               >
                 <ShieldAlert size={24} />
               </motion.div>
-              <h2 className="text-2xl font-display font-extrabold">Debt Detector</h2>
+              <h2 className="text-3xl font-display font-extrabold">Debt Detector</h2>
             </motion.div>
             <p className="text-sm text-gray-500 dark:text-gray-400">Identify loan traps and understand the true cost of borrowing.</p>
           </div>

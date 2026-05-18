@@ -40,7 +40,7 @@ function AdminRoute() {
   
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-900">
+      <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-900">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-500" />
       </div>
     );
@@ -78,7 +78,7 @@ function AnimatedRoutes({
   
   return (
     <AnimatePresence mode="wait">
-      <Routes location={location}>
+      <Routes location={location} key={location.pathname}>
         <Route path="/" element={
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -210,116 +210,8 @@ function AnimatedRoutes({
   );
 }
 
-function MainLayout({
-  currentUser,
-  userData,
-  handleProfileClick,
-  updateUserData,
-  handleUpdateCourseProgress,
-  logout,
-  deleteAccount,
-  updateUserDetails,
-  users,
-  isAuthModalOpen,
-  isOnboardingOpen,
-  setIsOnboardingOpen,
-  isProfileOpen,
-  setIsProfileOpen,
-  saveOnboarding,
-  updateUser,
-  login,
-  signup,
-  openAuthModal
-}: {
-  currentUser: User | null;
-  userData: UserData;
-  handleProfileClick: () => void;
-  updateUserData: (data: Partial<UserData>) => void;
-  handleUpdateCourseProgress: (courseId: string, lessonId: string) => void;
-  logout: () => void;
-  deleteAccount: (email: string) => void;
-  updateUserDetails: (email: string, details: Partial<User>) => void;
-  users: User[];
-  isAuthModalOpen: boolean;
-  isOnboardingOpen: boolean;
-  setIsOnboardingOpen: (open: boolean) => void;
-  isProfileOpen: boolean;
-  setIsProfileOpen: (open: boolean) => void;
-  saveOnboarding: (data: unknown) => void;
-  updateUser: (email: string, details: Partial<User>) => void;
-  login: (email: string) => void;
-  signup: (user: User) => void;
-  openAuthModal: () => void;
-}) {
-  const location = useLocation();
-  const isAdminRoute = location.pathname.startsWith('/admin');
-
-  return (
-    <div className={`min-h-screen font-sans selection:bg-brand-amber selection:text-brand-navy bg-white dark:bg-brand-navy text-brand-navy dark:text-white transition-colors duration-300 flex flex-col ${isAdminRoute ? '!bg-slate-900' : ''}`}>
-      {!isAdminRoute && (
-        <Navbar 
-          currentUser={currentUser} 
-          onLoginClick={openAuthModal} 
-          onLogout={logout}
-          onProfileClick={handleProfileClick}
-        />
-      )}
-
-      <main className={`w-full flex-1 flex flex-col overflow-hidden ${!isAdminRoute ? 'pt-20' : ''}`}>
-        <AnimatedRoutes 
-          currentUser={currentUser} 
-          userData={userData} 
-          setIsAuthModalOpen={openAuthModal} 
-          handleProfileClick={handleProfileClick} 
-          updateUserData={updateUserData} 
-          handleUpdateCourseProgress={handleUpdateCourseProgress}
-          logout={logout}
-          deleteAccount={deleteAccount}
-          updateUserDetails={updateUserDetails}
-        />
-      </main>
-
-      {!isAdminRoute && <Footer />}
-
-      <AuthModal 
-        isOpen={isAuthModalOpen} 
-        onClose={() => openAuthModal()}
-        users={users}
-        onUpdateUser={updateUser}
-        onSuccess={(user) => {
-          if (users.find(u => u.email === user.email)) {
-             login(user.email);
-          } else {
-             signup(user);
-          }
-          openAuthModal();
-        }}
-      />
-
-      <OnboardingModal 
-        isOpen={isOnboardingOpen}
-        onClose={() => setIsOnboardingOpen(false)}
-        initialData={userData.onboarding}
-        onComplete={(data) => {
-          saveOnboarding(data);
-          setIsOnboardingOpen(false);
-        }}
-      />
-
-      {userData.onboarding && (
-        <ProfileSummaryModal
-          isOpen={isProfileOpen}
-          onClose={() => setIsProfileOpen(false)}
-          initialData={userData.onboarding}
-          onUpdate={(data) => saveOnboarding(data)}
-        />
-      )}
-    </div>
-  );
-}
-
 export default function App() {
-  const { users, currentUser, signup, login, logout, deleteAccount, currentUserEmail, updateUserDetails } = useLocalStorage();
+  const { users, currentUser, signup, login, logout, deleteAccount, currentUserEmail, updateUser, updateUserDetails } = useLocalStorage();
   const { userData, updateUserData, addTransaction, updateTransactions, saveOnboarding } = useUserData(currentUserEmail);
   
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
@@ -354,43 +246,111 @@ export default function App() {
     });
   };
 
-  const openAuthModal = () => setIsAuthModalOpen(!isAuthModalOpen);
-
-  const handleUpdateUser = (email: string, details: Partial<User> | string) => {
-    if (typeof details === 'string') {
-      // It's a password update
-      const updatedUsers = users.map(u => u.email === email ? { ...u, password: details } : u);
-      localStorage.setItem('ps_users', JSON.stringify(updatedUsers));
-    } else {
-      updateUserDetails(email, details);
-    }
-  };
-
   return (
     <BrowserRouter>
       <ScrollToTop />
       <LanguageProvider>
-        <MainLayout 
+        <AppContent 
           currentUser={currentUser}
           userData={userData}
+          setIsAuthModalOpen={setIsAuthModalOpen}
           handleProfileClick={handleProfileClick}
           updateUserData={updateUserData}
           handleUpdateCourseProgress={handleUpdateCourseProgress}
           logout={logout}
           deleteAccount={deleteAccount}
           updateUserDetails={updateUserDetails}
-          users={users}
-          isAuthModalOpen={isAuthModalOpen}
-          isOnboardingOpen={isOnboardingOpen}
-          setIsOnboardingOpen={setIsOnboardingOpen}
-          isProfileOpen={isProfileOpen}
-          setIsProfileOpen={setIsProfileOpen}
-          saveOnboarding={saveOnboarding}
-          updateUser={handleUpdateUser}
-          login={login}
-          signup={signup}
-          openAuthModal={openAuthModal}
         />
+      </LanguageProvider>
+    </BrowserRouter>
+  );
+}
+
+function AppContent({
+  currentUser,
+  userData,
+  setIsAuthModalOpen,
+  handleProfileClick,
+  updateUserData,
+  handleUpdateCourseProgress,
+  logout,
+  deleteAccount,
+  updateUserDetails,
+}: {
+  currentUser: User | null;
+  userData: UserData;
+  setIsAuthModalOpen: (open: boolean) => void;
+  handleProfileClick: () => void;
+  updateUserData: (data: Partial<UserData>) => void;
+  handleUpdateCourseProgress: (courseId: string, lessonId: string) => void;
+  logout: () => void;
+  deleteAccount: (email: string) => void;
+  updateUserDetails: (email: string, details: Partial<User>) => void;
+}) {
+  const location = useLocation();
+  const isAdminRoute = location.pathname.startsWith('/admin');
+
+  return (
+    <div className={`min-h-screen font-sans selection:bg-brand-amber selection:text-brand-navy bg-white dark:bg-brand-navy text-brand-navy dark:text-white transition-colors duration-300 flex flex-col ${isAdminRoute ? '!bg-slate-900' : ''}`}>
+      {!isAdminRoute && (
+        <Navbar 
+          currentUser={currentUser} 
+          onLoginClick={() => setIsAuthModalOpen(true)} 
+          onLogout={logout}
+          onProfileClick={handleProfileClick}
+        />
+      )}
+
+      <main className={`w-full flex-1 flex flex-col overflow-hidden ${!isAdminRoute ? 'pt-20' : ''}`}>
+        <AnimatedRoutes 
+            currentUser={currentUser} 
+            userData={userData} 
+            setIsAuthModalOpen={setIsAuthModalOpen} 
+            handleProfileClick={handleProfileClick} 
+            updateUserData={updateUserData} 
+            handleUpdateCourseProgress={handleUpdateCourseProgress}
+            logout={logout}
+            deleteAccount={deleteAccount}
+            updateUserDetails={updateUserDetails}
+          />
+        </main>
+
+        {!isAdminRoute && <Footer />}
+
+        <AuthModal 
+          isOpen={isAuthModalOpen} 
+          onClose={() => setIsAuthModalOpen(false)}
+          users={users}
+          onUpdateUser={updateUser}
+          onSuccess={(user) => {
+            if (users.find(u => u.email === user.email)) {
+               login(user.email);
+            } else {
+               signup(user);
+            }
+            setIsAuthModalOpen(false);
+          }}
+        />
+
+        <OnboardingModal 
+          isOpen={isOnboardingOpen}
+          onClose={() => setIsOnboardingOpen(false)}
+          initialData={userData.onboarding}
+          onComplete={(data) => {
+            saveOnboarding(data);
+            setIsOnboardingOpen(false);
+          }}
+        />
+
+        {userData.onboarding && (
+          <ProfileSummaryModal
+            isOpen={isProfileOpen}
+            onClose={() => setIsProfileOpen(false)}
+            initialData={userData.onboarding}
+            onUpdate={(data) => saveOnboarding(data)}
+          />
+        )}
+        </div>
       </LanguageProvider>
     </BrowserRouter>
   );

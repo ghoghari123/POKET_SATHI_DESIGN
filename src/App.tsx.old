@@ -78,7 +78,7 @@ function AnimatedRoutes({
   
   return (
     <AnimatePresence mode="wait">
-      <Routes location={location}>
+      <Routes location={location} key={location.pathname}>
         <Route path="/" element={
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -221,6 +221,7 @@ function MainLayout({
   updateUserDetails,
   users,
   isAuthModalOpen,
+  setIsAuthModalOpen,
   isOnboardingOpen,
   setIsOnboardingOpen,
   isProfileOpen,
@@ -228,11 +229,11 @@ function MainLayout({
   saveOnboarding,
   updateUser,
   login,
-  signup,
-  openAuthModal
+  signup
 }: {
   currentUser: User | null;
   userData: UserData;
+  setIsAuthModalOpen: (open: boolean) => void;
   handleProfileClick: () => void;
   updateUserData: (data: Partial<UserData>) => void;
   handleUpdateCourseProgress: (courseId: string, lessonId: string) => void;
@@ -241,6 +242,7 @@ function MainLayout({
   updateUserDetails: (email: string, details: Partial<User>) => void;
   users: User[];
   isAuthModalOpen: boolean;
+  setIsAuthModalOpen: (open: boolean) => void;
   isOnboardingOpen: boolean;
   setIsOnboardingOpen: (open: boolean) => void;
   isProfileOpen: boolean;
@@ -249,7 +251,6 @@ function MainLayout({
   updateUser: (email: string, details: Partial<User>) => void;
   login: (email: string) => void;
   signup: (user: User) => void;
-  openAuthModal: () => void;
 }) {
   const location = useLocation();
   const isAdminRoute = location.pathname.startsWith('/admin');
@@ -259,7 +260,7 @@ function MainLayout({
       {!isAdminRoute && (
         <Navbar 
           currentUser={currentUser} 
-          onLoginClick={openAuthModal} 
+          onLoginClick={() => setIsAuthModalOpen(true)} 
           onLogout={logout}
           onProfileClick={handleProfileClick}
         />
@@ -269,7 +270,7 @@ function MainLayout({
         <AnimatedRoutes 
           currentUser={currentUser} 
           userData={userData} 
-          setIsAuthModalOpen={openAuthModal} 
+          setIsAuthModalOpen={setIsAuthModalOpen} 
           handleProfileClick={handleProfileClick} 
           updateUserData={updateUserData} 
           handleUpdateCourseProgress={handleUpdateCourseProgress}
@@ -283,7 +284,7 @@ function MainLayout({
 
       <AuthModal 
         isOpen={isAuthModalOpen} 
-        onClose={() => openAuthModal()}
+        onClose={() => setIsAuthModalOpen(false)}
         users={users}
         onUpdateUser={updateUser}
         onSuccess={(user) => {
@@ -292,7 +293,7 @@ function MainLayout({
           } else {
              signup(user);
           }
-          openAuthModal();
+          setIsAuthModalOpen(false);
         }}
       />
 
@@ -319,7 +320,7 @@ function MainLayout({
 }
 
 export default function App() {
-  const { users, currentUser, signup, login, logout, deleteAccount, currentUserEmail, updateUserDetails } = useLocalStorage();
+  const { users, currentUser, signup, login, logout, deleteAccount, currentUserEmail, updateUser, updateUserDetails } = useLocalStorage();
   const { userData, updateUserData, addTransaction, updateTransactions, saveOnboarding } = useUserData(currentUserEmail);
   
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
@@ -354,18 +355,6 @@ export default function App() {
     });
   };
 
-  const openAuthModal = () => setIsAuthModalOpen(!isAuthModalOpen);
-
-  const handleUpdateUser = (email: string, details: Partial<User> | string) => {
-    if (typeof details === 'string') {
-      // It's a password update
-      const updatedUsers = users.map(u => u.email === email ? { ...u, password: details } : u);
-      localStorage.setItem('ps_users', JSON.stringify(updatedUsers));
-    } else {
-      updateUserDetails(email, details);
-    }
-  };
-
   return (
     <BrowserRouter>
       <ScrollToTop />
@@ -373,6 +362,7 @@ export default function App() {
         <MainLayout 
           currentUser={currentUser}
           userData={userData}
+          setIsAuthModalOpen={setIsAuthModalOpen}
           handleProfileClick={handleProfileClick}
           updateUserData={updateUserData}
           handleUpdateCourseProgress={handleUpdateCourseProgress}
@@ -381,15 +371,15 @@ export default function App() {
           updateUserDetails={updateUserDetails}
           users={users}
           isAuthModalOpen={isAuthModalOpen}
+          setIsAuthModalOpen={setIsAuthModalOpen}
           isOnboardingOpen={isOnboardingOpen}
           setIsOnboardingOpen={setIsOnboardingOpen}
           isProfileOpen={isProfileOpen}
           setIsProfileOpen={setIsProfileOpen}
           saveOnboarding={saveOnboarding}
-          updateUser={handleUpdateUser}
+          updateUser={updateUser}
           login={login}
           signup={signup}
-          openAuthModal={openAuthModal}
         />
       </LanguageProvider>
     </BrowserRouter>

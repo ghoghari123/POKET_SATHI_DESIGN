@@ -9,7 +9,7 @@ interface AuthModalProps {
   onClose: () => void;
   onSuccess: (user: User) => void;
   users: User[];
-  onUpdateUser: (email: string, newPassword: string) => void;
+  onUpdateUser: (email: string, details: Partial<User> | string) => void;
 }
 
 export default function AuthModal({ isOpen, onClose, onSuccess, users, onUpdateUser }: AuthModalProps) {
@@ -117,8 +117,8 @@ export default function AuthModal({ isOpen, onClose, onSuccess, users, onUpdateU
   const handleGoogleSignIn = async () => {
     setError('');
     try {
-      const googleUser = await signInWithGoogle();
-      const existingUser = users.find(u => u.email === googleUser.email);
+      const googleUser = await signInWithGoogle() as { name?: string; email: string; photoURL?: string };
+      const existingUser = users.find((u: User) => u.email === googleUser.email);
       
       if (existingUser) {
         onSuccess(existingUser);
