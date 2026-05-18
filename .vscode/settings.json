@@ -1,22 +1,10 @@
 {
   "css.validate": false,
-  "less.validate": false,
   "scss.validate": false,
-  "stylelint.enable": false,
-  "editor.defaultFormatter": "esbenp.prettier-vscode",
-  "editor.formatOnSave": true,
-  "files.associations": {
-    "*.css": "css"
-  },
+  "less.validate": false,
+  "editor.codeActionsOnSave": {},
   "[css]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode",
-    "editor.codeActionsOnSave": {
-      "source.fixAll.eslint": "explicit",
-      "source.organizeImports": "never"
-    }
-  },
-  "extensions.ignoreRecommendations": true,
-  "typescript.tsdk": "node_modules/typescript/lib",
-  "javascript.validate.enable": false,
-  "tailwindCSS.experimental.configVersion": "v4"
+    "editor.rulers": [],
+    "editor.defaultFormatter": null
+  }
 }
